@@ -1,34 +1,40 @@
-import  { useMemo } from "react";
+import { useMemo } from "react";
 import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork ,WalletError} from "@solana/wallet-adapter-base";
+import { WalletAdapterNetwork, WalletError } from "@solana/wallet-adapter-base";
 import {
-    WalletModalProvider,
-    WalletDisconnectButton,
-    WalletMultiButton
-} from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter,SolflareWalletAdapter,SolletExtensionWalletAdapter,SolletWalletAdapter,TorusWalletAdapter } from "@solana/wallet-adapter-wallets";
+  WalletModalProvider,
+  WalletDisconnectButton,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  SolletExtensionWalletAdapter,
+  SolletWalletAdapter,
+  TorusWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 
 // Default styles that can be overridden by your app
-import('@solana/wallet-adapter-react-ui/styles.css');
+import("@solana/wallet-adapter-react-ui/styles.css");
 
 export const Wallet = ({ children }) => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
-
+  const autoConnect = JSON.parse(localStorage.getItem("autoConnect")) || false;
   // You can also provide a custom RPC endpoint.
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   const wallets = useMemo(
     () => [
-        new PhantomWalletAdapter(),
-        new SolflareWalletAdapter(),
-        new SolletExtensionWalletAdapter(),
-        new SolletWalletAdapter(),
-        new TorusWalletAdapter()
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new SolletExtensionWalletAdapter(),
+      new SolletWalletAdapter(),
+      new TorusWalletAdapter(),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [network]
@@ -36,10 +42,8 @@ export const Wallet = ({ children }) => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
-      <WalletModalProvider>
-      {children}
-      </WalletModalProvider>
+      <WalletProvider wallets={wallets} autoConnect={autoConnect}>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
