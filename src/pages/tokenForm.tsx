@@ -1,8 +1,6 @@
 import { BackgroundBeams } from "../components/ui/background-beams";
-import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { TextArea } from "../components/ui/textArea";
-import { cn } from "../lib/cn";
 import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 import StepCheck from "@/components/ui/stepCheck";
 import UploadingMetadata from "@/components/uploadingMetadata";
@@ -20,9 +18,18 @@ import { clusterApiUrl } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-adapters";
 import { base58 } from "@metaplex-foundation/umi/serializers";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Form } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormLabel,
+  FormMessage,
+  FormItem,
+} from "@/components/ui/form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const BottomGradient = () => {
   return (
@@ -33,30 +40,31 @@ const BottomGradient = () => {
   );
 };
 
-const LabelInputContainer = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full mb-4", className)}>
-      {children}
-    </div>
-  );
-};
-
 export function TokenForm() {
+  const formSchema = z.object({
+    name: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(15, { message: "Name must be 20 characters max" }),
+  });
+
+  // defining form
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      symbol: "",
+      decimals: "",
+      supply: "",
+    },
+  });
+
   const [currentStep, setCurrentStep] = useState({
     active: 1,
     completed: 0,
     error: false,
   });
-
-  const [formValues, setFormValues] = useState({
-    name: "",
-    symbol: "",
-    decimals: "",
-    supply: "",
-    description: "",
-  });
-
-  const { visible, setVisible } = useWalletModal();
   const wallet = useWallet();
 
   useEffect(() => {
@@ -67,8 +75,8 @@ export function TokenForm() {
     }
   }, []);
 
-  async function execute(e) {
-    e.preventDefault();
+  async function execute(values?: z.infer<typeof formSchema>) {
+    console.log(values);
     try {
       if (!wallet.publicKey) {
         return toast.error("Please connect wallet first!", {
@@ -114,53 +122,89 @@ export function TokenForm() {
         </div>
         <div className="col-span-12 sm:col-span-6 sm:ml-0 lg:ml-0 md:mr-10 z-20 sm:max-w-lg sm:w-full sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-900 md:p-8 shadow-input bg-black">
           <Navbar />
-            <form
-              className="my-8"
-              onSubmit={(e) => {
-                execute(e);
-              }}
-            >
+          <Form {...form}>
+            <form className="my-8" onSubmit={form.handleSubmit(execute)}>
               <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-                <LabelInputContainer>
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Name" type="text" />
-                </LabelInputContainer>
-                <LabelInputContainer>
-                  <Label htmlFor="symbol">Symbol</Label>
-                  <Input id="symbol" placeholder="Durden" type="text" />
-                </LabelInputContainer>
-              </div>
-              <div className="flex space-x-2">
-                <div className="w-full">
-                  <LabelInputContainer className="mb-4">
-                    <Label htmlFor="decimals">Decimals</Label>
-                    <Input
-                      id="decimals"
-                      placeholder="projectmayhem@fc.com"
-                      type="email"
-                    />
-                  </LabelInputContainer>
-                  <LabelInputContainer className="mb-4">
-                    <Label htmlFor="supply">Supply</Label>
-                    <Input id="supply" placeholder="Supply" type="password" />
-                  </LabelInputContainer>
-                </div>
-                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-lg">
-                  <p></p>
-                </div>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="shadcn" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="symbol"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Symbol</FormLabel>
+                      <FormControl>
+                        <Input placeholder="shadcn" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <LabelInputContainer className="mb-8">
-                <Label htmlFor="description">Description</Label>
-                <TextArea id="description" placeholder="Description" />
-              </LabelInputContainer>
+              <div className="flex space-x-2 mb-4">
+                <div className="w-full space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="decimals"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Decimals</FormLabel>
+                        <FormControl>
+                          <Input placeholder="shadcn" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="supply"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Supply</FormLabel>
+                        <FormControl>
+                          <Input placeholder="shadcn" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-lg"></div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <TextArea placeholder="shadcn" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="bg-gradient-to-r from-transparent via-zinc-300 dark:via-zinc-700 to-transparent my-8 h-[1px] w-full" />
 
               <button
                 className="bg-gradient-to-br relative group/btn  from-zinc-900 to-zinc-900 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                 type="submit"
-                onClick={(e) => {
-                  execute(e);
+                onClick={() => {
+                  execute();
                 }}
               >
                 Create Token
@@ -192,6 +236,7 @@ export function TokenForm() {
                 </DialogContent>
               </Dialog>
             </form>
+          </Form>
         </div>
       </div>
       {/* <BackgroundBeams /> */}
