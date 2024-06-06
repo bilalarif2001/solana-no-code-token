@@ -30,6 +30,7 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import UploadSvg from "@/assets/svg/uploadSvg";
 
 const BottomGradient = () => {
   return (
@@ -46,6 +47,22 @@ export function TokenForm() {
       .string()
       .min(2, { message: "Name must be at least 2 characters" })
       .max(15, { message: "Name must be 20 characters max" }),
+    symbol: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(15, { message: "Name must be 20 characters max" }),
+    decimals: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(15, { message: "Name must be 20 characters max" }),
+    supply: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(15, { message: "Name must be 20 characters max" }),
+    description: z
+      .string()
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(200, { message: "Name must be 200 characters max" }),
   });
 
   // defining form
@@ -57,8 +74,13 @@ export function TokenForm() {
       symbol: "",
       decimals: "",
       supply: "",
+      description: "",
     },
   });
+
+  const [image, setImage] = useState();
+  const [displayImage, setDisplayImage] = useState("");
+  const [imageErr, setImageErr] = useState("");
 
   const [currentStep, setCurrentStep] = useState({
     active: 1,
@@ -76,7 +98,11 @@ export function TokenForm() {
   }, []);
 
   async function execute(values?: z.infer<typeof formSchema>) {
-    console.log(values);
+    // const check = formSchema.parse(values)
+    // console.log(check)
+   if (!displayImage){
+    setImageErr("Image is required")
+   }
     try {
       if (!wallet.publicKey) {
         return toast.error("Please connect wallet first!", {
@@ -102,7 +128,7 @@ export function TokenForm() {
 
   return (
     <div className="h-full min-h-screen w-full bg-neutral-950 relative flex flex-col items-center justify-center antialiased">
-      <div className="grid grid-cols-12 w-full max-w-7xl mx-auto lg:gap-24">
+      <div className="grid grid-cols-12 w-full max-w-7xl mx-auto xl:gap-24 md:px-8">
         <div className="col-span-6 mr-12 my-auto hidden sm:block">
           <h1 className="relative z-10 text-lg lg:text-7xl  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600  text-center font-sans font-bold">
             Solana
@@ -120,7 +146,7 @@ export function TokenForm() {
             ></WalletMultiButton>
           </div>
         </div>
-        <div className="col-span-12 sm:col-span-6 sm:ml-0 lg:ml-0 md:mr-10 z-20 sm:max-w-lg sm:w-full sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-900 md:p-8 shadow-input bg-black">
+        <div className="col-span-12 sm:col-span-6 z-20 sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-black">
           <Navbar />
           <Form {...form}>
             <form className="my-8" onSubmit={form.handleSubmit(execute)}>
@@ -182,10 +208,47 @@ export function TokenForm() {
                     )}
                   />
                 </div>
-                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-lg"></div>
+                <div className="w-full rounded-lg">
+                  <label
+                    htmlFor="dropzone-file"
+                    className={`text-zinc-200 font-medium text-sm mb-2 ${imageErr && "text-red-900"}`}
+                  >
+                    Image
+                  </label>
+                  <div className="flex items-center justify-center w-full h-full mt-2">
+                    <label
+                      htmlFor="dropzone-file"
+                      className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
+                    >
+                      <div className="flex flex-col items-center justify-center w-full h-full">
+                        {displayImage ? (
+                          <img src={displayImage} className="size-32 " />
+                        ) : (
+                          <UploadSvg />
+                        )}
+                      </div>
+                      <input
+                        id="dropzone-file"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                          setImage(e.target.files[0]);
+                          // URL createObject converts image to blob so it can be displayed dynamically on screen.
+                          setDisplayImage(
+                            URL.createObjectURL(e.target.files[0])
+                          );
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {imageErr && <p className="text-red-900 text-sm font-medium">{imageErr}</p>}
+                </div>
               </div>
 
-              <FormField
+<div className="mt-8">
+<FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
@@ -198,6 +261,8 @@ export function TokenForm() {
                   </FormItem>
                 )}
               />
+</div>
+             
               <div className="bg-gradient-to-r from-transparent via-zinc-300 dark:via-zinc-700 to-transparent my-8 h-[1px] w-full" />
 
               <button

@@ -2,8 +2,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 function Navbar() {
   return (
-    <div className=" md:hidden">
-      <div className="flex items-center justify-between mb-8">
+    <div className=" sm:hidden">
+      <div className="flex items-center justify-between mb-8 space-x-4">
         <p className="bg-clip-text text-lg text-transparent bg-gradient-to-r from-cyan-300 to-violet-600  text-center font-sans font-bold">
           Token Launcher
         </p>
