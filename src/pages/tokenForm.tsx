@@ -8,16 +8,9 @@ import { Toaster, toast } from "sonner";
 import CreateToken from "@/components/ui/creatingToken";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
-
 // Solana Imports
 
-import { generateSigner, percentAmount, some } from "@metaplex-foundation/umi";
-import { createFungible } from "@metaplex-foundation/mpl-token-metadata";
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { clusterApiUrl } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-adapters";
-import { base58 } from "@metaplex-foundation/umi/serializers";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import {
   Form,
@@ -31,40 +24,11 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import UploadSvg from "@/assets/svg/uploadSvg";
-
-const BottomGradient = () => {
-  return (
-    <>
-      <span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-      <span className="group-hover/btn:opacity-100 blur-sm block transition duration-500 opacity-0 absolute h-px w-1/2 mx-auto -bottom-px inset-x-10 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-    </>
-  );
-};
-
+import uploadToPinata from "@/services/uploadPinata";
+import BottomGradient from "@/components/ui/bottomGradient";
+import createSplToken from "@/services/createSplToken";
+import formSchema from "@/schema/createSplToken.schema";
 export function TokenForm() {
-  const formSchema = z.object({
-    name: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(15, { message: "Name must be 20 characters max" }),
-    symbol: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(15, { message: "Name must be 20 characters max" }),
-    decimals: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(15, { message: "Name must be 20 characters max" }),
-    supply: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(15, { message: "Name must be 20 characters max" }),
-    description: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(200, { message: "Name must be 200 characters max" }),
-  });
-
   // defining form
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -72,15 +36,13 @@ export function TokenForm() {
     defaultValues: {
       name: "",
       symbol: "",
-      decimals: "",
+      decimals: 0,
       supply: "",
       description: "",
+      image: undefined as unknown as File,
     },
   });
-
-  const [image, setImage] = useState();
   const [displayImage, setDisplayImage] = useState("");
-  const [imageErr, setImageErr] = useState("");
 
   const [currentStep, setCurrentStep] = useState({
     active: 1,
@@ -88,6 +50,7 @@ export function TokenForm() {
     error: false,
   });
   const wallet = useWallet();
+  const imageRef = form.register("image");
 
   useEffect(() => {
     {
@@ -96,36 +59,38 @@ export function TokenForm() {
       }
     }
   }, []);
-
+  //amber-recent-carp-488.mypinata.cloud
   async function execute(values?: z.infer<typeof formSchema>) {
-    // const check = formSchema.parse(values)
-    // console.log(check)
-   if (!displayImage){
-    setImageErr("Image is required")
-   }
-    try {
-      if (!wallet.publicKey) {
-        return toast.error("Please connect wallet first!", {
-          classNames: { error: "text-red-500", title: "text-zinc-200" },
-        });
-      }
-      const umi = createUmi(clusterApiUrl("devnet"));
-      umi.use(walletAdapterIdentity(wallet));
-      const mint = generateSigner(umi);
-      const mintFungibleInstruc = await createFungible(umi, {
-        mint: mint,
-        name: "Talla is a big dalla",
-        authority: umi.identity,
-        uri: "https://example.com/my-fungible.json",
-        sellerFeeBasisPoints: percentAmount(0),
-        decimals: some(7), // for 0 decimals use some(0)
-      }).sendAndConfirm(umi);
-      console.log(base58.deserialize(mintFungibleInstruc.signature));
+    if (!wallet.publicKey) {
+      return toast.error("Please connect wallet first!", {
+        classNames: { error: "text-red-500", title: "text-zinc-200" },
+      });
+    }
+    const { name, symbol, decimals, supply, description } = values ?? {};
+
+        try {
+      const image = values?.image[0];
+
+      const metadataUri = await uploadToPinata(name, description, image);
+
+      toast.success("Metadata uploaded", {
+        classNames: { success: "text-green-500", title: "text-zinc-200" },
+      });
+
+      const createToken = await createSplToken(
+        wallet,
+        name,
+        metadataUri,
+        decimals,
+        symbol,
+        supply
+      );
+
+      console.log(createToken);
     } catch (error) {
       console.log(error);
     }
   }
-
   return (
     <div className="h-full min-h-screen w-full bg-neutral-950 relative flex flex-col items-center justify-center antialiased">
       <div className="grid grid-cols-12 w-full max-w-7xl mx-auto xl:gap-24 md:px-8">
@@ -139,11 +104,13 @@ export function TokenForm() {
           <p className="text-neutral-400 max-w-lg mx-auto my-2 text-lg text-center relative z-10">
             Launch a Token on Solana with minimal effort.
           </p>
-          <div className="flex justify-center">
+          <div className="relative flex justify-center ">
+            <div className="absolute z-10">
             <WalletMultiButton
-              className="bg-gradient-to-br relative group/btn  from-slate-800 to-slate-900"
+              className=" bg-gradient-to-br from-slate-800 to-slate-900 hover:from-stone-700 hover:to-slate-800"
               type="submit"
             ></WalletMultiButton>
+            </div>
           </div>
         </div>
         <div className="col-span-12 sm:col-span-6 z-20 sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-black">
@@ -158,7 +125,7 @@ export function TokenForm() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="shadcn" {...field} />
+                        <Input placeholder="name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -171,7 +138,7 @@ export function TokenForm() {
                     <FormItem>
                       <FormLabel>Symbol</FormLabel>
                       <FormControl>
-                        <Input placeholder="shadcn" {...field} />
+                        <Input placeholder="Symbol" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -188,7 +155,7 @@ export function TokenForm() {
                       <FormItem>
                         <FormLabel>Decimals</FormLabel>
                         <FormControl>
-                          <Input placeholder="shadcn" {...field} />
+                          <Input placeholder="0-9" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -201,74 +168,98 @@ export function TokenForm() {
                       <FormItem>
                         <FormLabel>Supply</FormLabel>
                         <FormControl>
-                          <Input placeholder="shadcn" {...field} />
+                          <Input placeholder="1000000" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <div className="w-full rounded-lg">
-                  <label
-                    htmlFor="dropzone-file"
-                    className={`text-zinc-200 font-medium text-sm mb-2 ${imageErr && "text-red-900"}`}
-                  >
-                    Image
-                  </label>
-                  <div className="flex items-center justify-center w-full h-full mt-2">
-                    <label
-                      htmlFor="dropzone-file"
-                      className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
-                    >
-                      <div className="flex flex-col items-center justify-center w-full h-full">
-                        {displayImage ? (
-                          <img src={displayImage} className="size-32 " />
-                        ) : (
-                          <UploadSvg />
-                        )}
-                      </div>
-                      <input
-                        id="dropzone-file"
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                          setImage(e.target.files[0]);
-                          // URL createObject converts image to blob so it can be displayed dynamically on screen.
-                          setDisplayImage(
-                            URL.createObjectURL(e.target.files[0])
-                          );
-                        }}
-                      />
-                    </label>
-                  </div>
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={() => (
+                    <FormItem className="w-full">
+                      <FormLabel>Image</FormLabel>
 
-                  {imageErr && <p className="text-red-900 text-sm font-medium">{imageErr}</p>}
-                </div>
+                      <FormControl>
+                        <div className="flex items-center justify-center w-full h-full mt-2">
+                          <label
+                            htmlFor="dropzone-file"
+                            className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
+                          >
+                            <div className="flex flex-col items-center justify-center w-full h-full">
+                              {displayImage ? (
+                                <img src={displayImage} className="size-32 " />
+                              ) : (
+                                <UploadSvg />
+                              )}
+                            </div>
+                            <input
+                              id="dropzone-file"
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              {...imageRef}
+                              onChange={(e) => {
+                                imageRef.onChange(e);
+                                if (!e.target.files) {
+                                  setDisplayImage("");
+                                  return;
+                                }
+                                if (e.target.files) {
+                                  const fileType = e.target.files[0]?.type;
+                                  if (
+                                    [
+                                      "image/jpeg",
+                                      "image/jpg",
+                                      "image/png",
+                                      "image/gif",
+                                    ].includes(fileType)
+                                  ) {
+                                    setDisplayImage(
+                                      URL.createObjectURL(e.target.files[0])
+                                    );
+                                  }
+                                }
+                                return;
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-<div className="mt-8">
-<FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <TextArea placeholder="shadcn" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-</div>
-             
+              <div className="mt-8">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <TextArea
+                          placeholder="Token description"
+                          {...field}
+                          className="resize-none"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="bg-gradient-to-r from-transparent via-zinc-300 dark:via-zinc-700 to-transparent my-8 h-[1px] w-full" />
 
               <button
                 className="bg-gradient-to-br relative group/btn  from-zinc-900 to-zinc-900 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                 type="submit"
-                onClick={() => {
+                onSubmit={() => {
                   execute();
                 }}
               >
@@ -304,7 +295,6 @@ export function TokenForm() {
           </Form>
         </div>
       </div>
-      {/* <BackgroundBeams /> */}
       <Toaster
         theme="dark"
         toastOptions={{
@@ -312,6 +302,8 @@ export function TokenForm() {
         }}
         position="top-center"
       />
+            <BackgroundBeams />
     </div>
+    
   );
 }
