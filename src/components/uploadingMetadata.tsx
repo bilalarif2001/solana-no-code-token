@@ -1,25 +1,12 @@
-import { useState } from "react";
 import LoaderSvg from "../assets/svg/loader";
-import CheckSvg from "@/assets/svg/checkSvg";
-import { toast } from "sonner";
 
 function UploadingMetadata() {
-  const [complete, setComplete] = useState(false);
   return (
     <div>
-      <LoaderSvg className={"h-24 w-24 mx-auto"} />
-      <p className="text-center text-zinc-200 m-4 text-sm font-semibold tracking-wide">
+      <LoaderSvg />
+      <p className="text-center text-zinc-300 m-4 text-sm font-medium tracking-wide">
         Uploading Metadata. Please Wait....
       </p>
-
-      <button
-        className="text-white"
-        onClick={() => {
-          toast.success("Metadata has been uploaded!",{classNames:{success:"text-green-500",title:"text-zinc-200"}});
-        }}
-      >
-        clieck
-      </button>
     </div>
   );
 }

@@ -13,20 +13,19 @@ const formSchema = z.object({
   decimals: z.coerce
     .number({ invalid_type_error: "Expected a Number" })
     .max(9, { message: "Decimals must be 9 max" }),
-  supply: z
-    .string()
-    .min(2, { message: "Supply must be at least 2 characters" })
-    .max(15, { message: "Supply must be 20 characters max" }),
+  supply: z.coerce
+  .number({ invalid_type_error: "Expected a Number" })
+  .min(1, { message: "Supply must be 1 min" }),
   description: z
     .string()
-    .min(2, { message: "description must be at least 2 characters" })
-    .max(200, { message: "description must be 200 characters max" }),
+    .min(1, { message: "Description is required" })
+    .max(200, { message: "Description must be 200 characters max" }),
   image: z
     .any()
     .refine((file) => file.length == 1, `Image is required.`)
     .refine(
       (file) => allowedFileTypes.includes(file[0]?.type),
-      "Only .jpg, .jpeg, .png and formats are supported"
+      "File is not .jpg, .jpeg, .png"
     )
     .refine(
       (file) => file[0]?.size <= 5 * 1024 * 1024,

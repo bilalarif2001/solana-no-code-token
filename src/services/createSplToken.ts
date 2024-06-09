@@ -19,8 +19,9 @@ async function createSplToken<T extends WalletAdapter>(
   decimals: number,
   symbol: string,
   supply: number
-): Promise<string> {
-  const umi = createUmi(clusterApiUrl("devnet"));
+): Promise<[string,number]> {
+  const network= import.meta.env.VITE_NETWORK
+  const umi = createUmi(clusterApiUrl(network));
   umi.use(mplTokenMetadata())
   umi.use(walletAdapterIdentity(wallet));
   const mint = generateSigner(umi);
@@ -35,7 +36,7 @@ async function createSplToken<T extends WalletAdapter>(
     symbol: symbol,
     tokenStandard: TokenStandard.Fungible,
   }).sendAndConfirm(umi);
-  return base58.deserialize(mintFungibleInstruc.signature).toString();
+  return base58.deserialize(mintFungibleInstruc.signature);
 }
 
 export default createSplToken;

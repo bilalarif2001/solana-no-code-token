@@ -1,14 +1,15 @@
 import { BackgroundBeams } from "../components/ui/background-beams";
 import { Input } from "../components/ui/input";
 import { TextArea } from "../components/ui/textArea";
-import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 import StepCheck from "@/components/ui/stepCheck";
 import UploadingMetadata from "@/components/uploadingMetadata";
 import { Toaster, toast } from "sonner";
-import CreateToken from "@/components/ui/creatingToken";
+import CreateToken from "@/components/creatingToken";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
-// Solana Imports
+import SolanaLogo from "../assets/SolanaLogo.png";
+
+import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -28,26 +29,26 @@ import uploadToPinata from "@/services/uploadPinata";
 import BottomGradient from "@/components/ui/bottomGradient";
 import createSplToken from "@/services/createSplToken";
 import formSchema from "@/schema/createSplToken.schema";
+import TransactionResult from "@/components/transactionResult";
 export function TokenForm() {
   // defining form
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       symbol: "",
-      decimals: 0,
+      decimals: "",
       supply: "",
       description: "",
       image: undefined as unknown as File,
     },
   });
   const [displayImage, setDisplayImage] = useState("");
-
+  const [openDialog, setOpenDialog] = useState(false);
+  const [hash, setHash] = useState("");
   const [currentStep, setCurrentStep] = useState({
     active: 1,
     completed: 0,
-    error: false,
   });
   const wallet = useWallet();
   const imageRef = form.register("image");
@@ -59,8 +60,7 @@ export function TokenForm() {
       }
     }
   }, []);
-  //amber-recent-carp-488.mypinata.cloud
-  async function execute(values?: z.infer<typeof formSchema>) {
+  async function createSolToken(values?: z.infer<typeof formSchema>) {
     if (!wallet.publicKey) {
       return toast.error("Please connect wallet first!", {
         classNames: { error: "text-red-500", title: "text-zinc-200" },
@@ -68,13 +68,20 @@ export function TokenForm() {
     }
     const { name, symbol, decimals, supply, description } = values ?? {};
 
-        try {
+    try {
       const image = values?.image[0];
-
+      setOpenDialog(true);
       const metadataUri = await uploadToPinata(name, description, image);
-
       toast.success("Metadata uploaded", {
-        classNames: { success: "text-green-500", title: "text-zinc-200" },
+        classNames: { success: "text-violet-500", title: "text-zinc-200" },
+      });
+
+      setCurrentStep((prev) => {
+        return {
+          ...prev,
+          active: prev.active + 1,
+          completed: prev.completed + 1,
+        };
       });
 
       const createToken = await createSplToken(
@@ -85,17 +92,41 @@ export function TokenForm() {
         symbol,
         supply
       );
-
-      console.log(createToken);
-    } catch (error) {
-      console.log(error);
+      setHash(createToken[0]);
+      toast.success("Token Created", {
+        classNames: { success: "text-violet-500", title: "text-zinc-200" },
+      });
+      setCurrentStep((prev) => {
+        return {
+          ...prev,
+          active: prev.active + 1,
+          completed: prev.completed + 1,
+        };
+      });
+    } catch (err: any) {
+      console.log(err);
+      setCurrentStep({ active: 1, completed: 0 });
+      setOpenDialog(false);
+      if (err?.error) {
+        return toast.error(err.error.toString(), {
+          classNames: { error: "text-red-500", title: "text-zinc-200" },
+        });
+      } else if (err?.response?.data) {
+        return toast.error("Failed to upload metadata.", {
+          classNames: { error: "text-red-500", title: "text-zinc-200" },
+        });
+      } else {
+        return toast.error("An Error Occured!", {
+          classNames: { error: "text-red-500", title: "text-zinc-200" },
+        });
+      }
     }
   }
   return (
     <div className="h-full min-h-screen w-full bg-neutral-950 relative flex flex-col items-center justify-center antialiased">
       <div className="grid grid-cols-12 w-full max-w-7xl mx-auto xl:gap-24 md:px-8">
-        <div className="col-span-6 mr-12 my-auto hidden sm:block">
-          <h1 className="relative z-10 text-lg lg:text-7xl  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600  text-center font-sans font-bold">
+        <div className="col-span-6 mr-12 my-auto hidden sm:block space-y-5">
+          <h1 className="relative z-10 text-lg lg:text-6xl  bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600  text-center font-sans font-bold">
             Solana
             <p className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-violet-600  text-center font-sans font-bold">
               Token Launcher
@@ -106,17 +137,17 @@ export function TokenForm() {
           </p>
           <div className="relative flex justify-center ">
             <div className="absolute z-10">
-            <WalletMultiButton
-              className=" bg-gradient-to-br from-slate-800 to-slate-900 hover:from-stone-700 hover:to-slate-800"
-              type="submit"
-            ></WalletMultiButton>
+              <WalletMultiButton
+                className=" bg-gradient-to-br from-slate-800 to-slate-900 hover:from-stone-700 hover:to-slate-800"
+                type="submit"
+              ></WalletMultiButton>
             </div>
           </div>
         </div>
-        <div className="col-span-12 sm:col-span-6 z-20 sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-black">
+        <div className="col-span-12 sm:col-span-6 z-20 sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-zinc-950">
           <Navbar />
           <Form {...form}>
-            <form className="my-8" onSubmit={form.handleSubmit(execute)}>
+            <form className="my-8" onSubmit={form.handleSubmit(createSolToken)}>
               <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
                 <FormField
                   control={form.control}
@@ -125,7 +156,7 @@ export function TokenForm() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="name" {...field} />
+                        <Input placeholder="Name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -192,7 +223,15 @@ export function TokenForm() {
                               {displayImage ? (
                                 <img src={displayImage} className="size-32 " />
                               ) : (
-                                <UploadSvg />
+                                <div className="flex flex-col items-center justify-center">
+                                  <UploadSvg />
+                                  <p className="text-sm text-zinc-400 font-semibold">
+                                    Click to upload
+                                  </p>
+                                  <p className="text-xs text-zinc-400">
+                                    JPG, PNG, or GIF (MAX 5MB)
+                                  </p>
+                                </div>
                               )}
                             </div>
                             <input
@@ -259,38 +298,36 @@ export function TokenForm() {
               <button
                 className="bg-gradient-to-br relative group/btn  from-zinc-900 to-zinc-900 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                 type="submit"
-                onSubmit={() => {
-                  execute();
-                }}
+                disabled={form.formState.isSubmitting}
               >
-                Create Token
+                {form.formState.isSubmitting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <img src={SolanaLogo} className="size-4" />
+                    <p>Processing...</p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center space-x-2">
+                    <img src={SolanaLogo} className="size-4" />
+                    <p>Create Token</p>
+                  </div>
+                )}
                 <BottomGradient />
               </button>
 
-              <Dialog>
-                <DialogTrigger>Open</DialogTrigger>
-                <DialogContent className="text-white">
+              <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+                <AlertDialogContent className="text-white">
                   <StepCheck status={currentStep} />
                   {currentStep.active == 1 && <UploadingMetadata />}
                   {currentStep.active == 2 && <CreateToken />}
-                  {currentStep.active == 3 && <UploadingMetadata />}
-
-                  <button
-                    className="border p-4 text-white"
-                    onClick={() => {
-                      setCurrentStep((prev) => {
-                        return {
-                          ...prev,
-                          active: prev.active + 1,
-                          completed: prev.completed + 1,
-                        };
-                      });
-                    }}
-                  >
-                    asada
-                  </button>
-                </DialogContent>
-              </Dialog>
+                  {currentStep.active == 3 && (
+                    <TransactionResult
+                      hash={hash}
+                      setOpenDialog={setOpenDialog}
+                      setCurrentStep={setCurrentStep}
+                    />
+                  )}
+                </AlertDialogContent>
+              </AlertDialog>
             </form>
           </Form>
         </div>
@@ -302,8 +339,7 @@ export function TokenForm() {
         }}
         position="top-center"
       />
-            <BackgroundBeams />
+      <BackgroundBeams />
     </div>
-    
   );
 }
