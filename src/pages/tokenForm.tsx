@@ -177,7 +177,7 @@ export function TokenForm() {
                     control={form.control}
                     name="name"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
                         <FormLabel>Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Name" {...field} />
@@ -190,7 +190,7 @@ export function TokenForm() {
                     control={form.control}
                     name="symbol"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
                         <FormLabel>Symbol</FormLabel>
                         <FormControl>
                           <Input placeholder="Symbol" {...field} />
