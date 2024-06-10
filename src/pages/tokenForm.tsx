@@ -142,52 +142,45 @@ export function TokenForm() {
                 type="submit"
               ></WalletMultiButton>
             </div>
+            <div className="absolute top-20 z-10">
+              <div className="p2 text-violet-400 rounded-lg p-2 border border-violet-700 bg-zinc-950 text-xs flex space-x-1 items-center tracking-wider">
+                <svg
+                  className=""
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  height="20"
+                  width="20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="font-bold text-sm">Info!</span>
+                <span>Current network is Solana Devnet.</span>
+              </div>
+            </div>
           </div>
         </div>
         <div className="w-full p-8 md:p-2 col-span-12 sm:col-span-6 z-20">
-        <div className=" sm:mx-auto w-full rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-zinc-950">
-          <Navbar />
-          <Form {...form}>
-            <form className="my-8" onSubmit={form.handleSubmit(createSolToken)}>
-              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="symbol"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Symbol</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Symbol" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="flex flex-col md:flex-row md:space-x-2 mb-4">
-                <div className="w-full space-y-4">
+          <div className=" sm:mx-auto w-full rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-zinc-950">
+            <Navbar />
+            <Form {...form}>
+              <form
+                className="my-8"
+                onSubmit={form.handleSubmit(createSolToken)}
+              >
+                <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
                   <FormField
                     control={form.control}
-                    name="decimals"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Decimals</FormLabel>
+                        <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="0-9" {...field} />
+                          <Input placeholder="Name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -195,143 +188,176 @@ export function TokenForm() {
                   />
                   <FormField
                     control={form.control}
-                    name="supply"
+                    name="symbol"
                     render={({ field }) => (
-                      <FormItem className="">
-                        <FormLabel>Supply</FormLabel>
+                      <FormItem>
+                        <FormLabel>Symbol</FormLabel>
                         <FormControl>
-                          <Input placeholder="1000000" {...field} />
+                          <Input placeholder="Symbol" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="image"
-                  render={() => (
-                    <FormItem className="w-full">
-                      <FormLabel>Image</FormLabel>
 
-                      <FormControl>
-                        <div className="flex items-center justify-center w-full h-full mt-2">
-                          <label
-                            htmlFor="dropzone-file"
-                            className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
-                          >
-                            <div className="flex flex-col items-center justify-center w-full h-48 md:h-40">
-                              {displayImage ? (
-                                <img src={displayImage} className="size-32 " />
-                              ) : (
-                                <div className="flex flex-col items-center justify-center text-center">
-                                  <UploadSvg />
-                                  <p className="text-sm text-zinc-400 font-semibold">
-                                    Click to upload
-                                  </p>
-                                  <p className="text-xs text-zinc-400">
-                                    JPG, PNG, or GIF (MAX 5MB)
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            <input
-                              id="dropzone-file"
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              {...imageRef}
-                              onChange={(e) => {
-                                imageRef.onChange(e);
-                                if (!e.target.files) {
-                                  setDisplayImage("");
-                                  return;
-                                }
-                                if (e.target.files) {
-                                  const fileType = e.target.files[0]?.type;
-                                  if (
-                                    [
-                                      "image/jpeg",
-                                      "image/jpg",
-                                      "image/png",
-                                      "image/gif",
-                                    ].includes(fileType)
-                                  ) {
-                                    setDisplayImage(
-                                      URL.createObjectURL(e.target.files[0])
-                                    );
-                                  }
-                                }
-                                return;
-                              }}
-                            />
-                          </label>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="mt-8">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <TextArea
-                          placeholder="Token description"
-                          {...field}
-                          className="resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="bg-gradient-to-r from-transparent via-zinc-300 dark:via-zinc-700 to-transparent my-8 h-[1px] w-full" />
-
-              <button
-                className="bg-gradient-to-br relative group/btn  from-zinc-900 to-zinc-900 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                type="submit"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <img src={SolanaLogo} className="size-4" />
-                    <p>Processing...</p>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center space-x-2">
-                    <img src={SolanaLogo} className="size-4" />
-                    <p>Create Token</p>
-                  </div>
-                )}
-                <BottomGradient />
-              </button>
-
-              <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-                <AlertDialogContent className="text-white">
-                  <StepCheck status={currentStep} />
-                  {currentStep.active == 1 && <UploadingMetadata />}
-                  {currentStep.active == 2 && <CreateToken />}
-                  {currentStep.active == 3 && (
-                    <TransactionResult
-                      hash={hash}
-                      setOpenDialog={setOpenDialog}
-                      setCurrentStep={setCurrentStep}
+                <div className="flex flex-col md:flex-row md:space-x-2 mb-4">
+                  <div className="w-full space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="decimals"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Decimals</FormLabel>
+                          <FormControl>
+                            <Input placeholder="0-9" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="supply"
+                      render={({ field }) => (
+                        <FormItem className="">
+                          <FormLabel>Supply</FormLabel>
+                          <FormControl>
+                            <Input placeholder="1000000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={() => (
+                      <FormItem className="w-full">
+                        <FormLabel>Image</FormLabel>
+
+                        <FormControl>
+                          <div className="flex items-center justify-center w-full h-full mt-2">
+                            <label
+                              htmlFor="dropzone-file"
+                              className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
+                            >
+                              <div className="flex flex-col items-center justify-center w-full h-48 md:h-40">
+                                {displayImage ? (
+                                  <img
+                                    src={displayImage}
+                                    className="size-32 "
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center text-center">
+                                    <UploadSvg />
+                                    <p className="text-sm text-zinc-400 font-semibold">
+                                      Click to upload
+                                    </p>
+                                    <p className="text-xs text-zinc-400">
+                                      JPG, PNG, or GIF (MAX 5MB)
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                id="dropzone-file"
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                {...imageRef}
+                                onChange={(e) => {
+                                  imageRef.onChange(e);
+                                  if (!e.target.files) {
+                                    setDisplayImage("");
+                                    return;
+                                  }
+                                  if (e.target.files) {
+                                    const fileType = e.target.files[0]?.type;
+                                    if (
+                                      [
+                                        "image/jpeg",
+                                        "image/jpg",
+                                        "image/png",
+                                        "image/gif",
+                                      ].includes(fileType)
+                                    ) {
+                                      setDisplayImage(
+                                        URL.createObjectURL(e.target.files[0])
+                                      );
+                                    }
+                                  }
+                                  return;
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="mt-8">
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <TextArea
+                            placeholder="Token description"
+                            {...field}
+                            className="resize-none"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="bg-gradient-to-r from-transparent via-zinc-300 dark:via-zinc-700 to-transparent my-8 h-[1px] w-full" />
+
+                <button
+                  className="bg-gradient-to-br relative group/btn  from-zinc-900 to-zinc-900 block bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                  type="submit"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <img src={SolanaLogo} className="size-4" />
+                      <p>Processing...</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center space-x-2">
+                      <img src={SolanaLogo} className="size-4" />
+                      <p>Create Token</p>
+                    </div>
                   )}
-                </AlertDialogContent>
-              </AlertDialog>
-            </form>
-          </Form>
-        </div>
+                  <BottomGradient />
+                </button>
+
+                <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+                  <AlertDialogContent className="text-white">
+                    <StepCheck status={currentStep} />
+                    {currentStep.active == 1 && <UploadingMetadata />}
+                    {currentStep.active == 2 && <CreateToken />}
+                    {currentStep.active == 3 && (
+                      <TransactionResult
+                        hash={hash}
+                        setOpenDialog={setOpenDialog}
+                        setCurrentStep={setCurrentStep}
+                      />
+                    )}
+                  </AlertDialogContent>
+                </AlertDialog>
+              </form>
+            </Form>
+          </div>
         </div>
       </div>
       <Toaster
