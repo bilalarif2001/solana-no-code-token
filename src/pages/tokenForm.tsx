@@ -144,7 +144,8 @@ export function TokenForm() {
             </div>
           </div>
         </div>
-        <div className="col-span-12 sm:col-span-6 z-20 sm:mx-auto mx-4 rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-zinc-950">
+        <div className="w-full p-8 md:p-2 col-span-12 sm:col-span-6 z-20">
+        <div className=" sm:mx-auto w-full rounded-none md:rounded-2xl p-4 border border-zinc-800 md:p-8 shadow-input bg-zinc-950">
           <Navbar />
           <Form {...form}>
             <form className="my-8" onSubmit={form.handleSubmit(createSolToken)}>
@@ -177,7 +178,7 @@ export function TokenForm() {
                 />
               </div>
 
-              <div className="flex space-x-2 mb-4">
+              <div className="flex flex-col md:flex-row md:space-x-2 mb-4">
                 <div className="w-full space-y-4">
                   <FormField
                     control={form.control}
@@ -196,7 +197,7 @@ export function TokenForm() {
                     control={form.control}
                     name="supply"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="">
                         <FormLabel>Supply</FormLabel>
                         <FormControl>
                           <Input placeholder="1000000" {...field} />
@@ -219,11 +220,11 @@ export function TokenForm() {
                             htmlFor="dropzone-file"
                             className="flex flex-col items-center justify-center w-full h-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-zinc-800 hover:bg-gray-100 dark:border-zinc-800 dark:hover:border-zinc-600 "
                           >
-                            <div className="flex flex-col items-center justify-center w-full h-full">
+                            <div className="flex flex-col items-center justify-center w-full h-48 md:h-40">
                               {displayImage ? (
                                 <img src={displayImage} className="size-32 " />
                               ) : (
-                                <div className="flex flex-col items-center justify-center">
+                                <div className="flex flex-col items-center justify-center text-center">
                                   <UploadSvg />
                                   <p className="text-sm text-zinc-400 font-semibold">
                                     Click to upload
@@ -330,6 +331,7 @@ export function TokenForm() {
               </AlertDialog>
             </form>
           </Form>
+        </div>
         </div>
       </div>
       <Toaster
