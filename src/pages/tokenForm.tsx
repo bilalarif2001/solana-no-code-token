@@ -142,7 +142,7 @@ export function TokenForm() {
                 type="submit"
               ></WalletMultiButton>
             </div>
-            <div className="absolute top-20 z-10">
+            <div className="absolute top-20 z-[5]">
               <div className="p2 text-violet-400 rounded-lg p-2 border border-violet-700 bg-zinc-950 text-xs flex space-x-1 items-center tracking-wider">
                 <svg
                   className=""
