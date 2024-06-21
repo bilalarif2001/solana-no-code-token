@@ -30,6 +30,7 @@ import BottomGradient from "@/components/ui/bottomGradient";
 import createSplToken from "@/services/createSplToken";
 import formSchema from "@/schema/createSplToken.schema";
 import TransactionResult from "@/components/transactionResult";
+import Footer from "@/components/footer";
 export function TokenForm() {
   // defining form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -360,6 +361,7 @@ export function TokenForm() {
           </div>
         </div>
       </div>
+      <Footer/>
       <Toaster
         theme="dark"
         toastOptions={{
